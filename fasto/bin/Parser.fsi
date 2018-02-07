@@ -24,10 +24,12 @@ type token =
   | PLUS of ((int*int))
   | MINUS of ((int*int))
   | LESS of ((int*int))
+  | MULT of ((int*int))
+  | DIV of ((int*int))
+  | NEG of ((int*int))
   | INT of ((int*int))
   | CHAR of ((int*int))
   | BOOL of ((int*int))
-  | MULT of ((int*int))
   | SCAN of ((int*int))
   | IF of ((int*int))
   | THEN of ((int*int))
@@ -63,10 +65,12 @@ type tokenId =
     | TOKEN_PLUS
     | TOKEN_MINUS
     | TOKEN_LESS
+    | TOKEN_MULT
+    | TOKEN_DIV
+    | TOKEN_NEG
     | TOKEN_INT
     | TOKEN_CHAR
     | TOKEN_BOOL
-    | TOKEN_MULT
     | TOKEN_SCAN
     | TOKEN_IF
     | TOKEN_THEN
