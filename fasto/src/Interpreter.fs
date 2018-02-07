@@ -175,18 +175,17 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
         e.g., `And (e1, e2, pos)` should not evaluate `e2` if `e1` already
               evaluates to false. 
   *)
-  | Times(_, _, _) ->        
-        failwith "Unimplemented interpretation of multiplication"
-  | Divide(_, _, _) ->
-        failwith "Unimplemented interpretation of division"
   | And (_, _, _) ->
         failwith "Unimplemented interpretation of &&"
   | Or (_, _, _) ->
         failwith "Unimplemented interpretation of ||"
   | Not(_, _) ->
         failwith "Unimplemented interpretation of not"
-  | Negate(_, _) ->
-        failwith "Unimplemented interpretation of negate"
+  | Negate(e1, pos) ->
+        let res = evalExp(e1, vtab, ftab)
+        match (res) with
+        | (IntVal m) -> IntVal (~m)
+        | _ -> invalidOperands "Negation on non-integral arg: " [(Int)] res pos
 
   | Equal(e1, e2, pos) ->
         let r1 = evalExp(e1, vtab, ftab)
