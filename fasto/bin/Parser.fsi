@@ -27,16 +27,21 @@ type token =
   | MULT of ((int*int))
   | DIV of ((int*int))
   | NEG of ((int*int))
+  | NOT of ((int*int))
   | INT of ((int*int))
   | CHAR of ((int*int))
   | BOOL of ((int*int))
   | SCAN of ((int*int))
+  | AND of ((int*int))
+  | OR of ((int*int))
   | IF of ((int*int))
   | THEN of ((int*int))
   | ELSE of ((int*int))
   | LET of ((int*int))
   | IN of ((int*int))
   | EOF of ((int*int))
+  | TRUE of (bool*(int*int))
+  | FALSE of (bool*(int*int))
   | ID of (string*(int*int))
   | STRINGLIT of (string*(int*int))
   | CHARLIT of (char*(int*int))
@@ -68,16 +73,21 @@ type tokenId =
     | TOKEN_MULT
     | TOKEN_DIV
     | TOKEN_NEG
+    | TOKEN_NOT
     | TOKEN_INT
     | TOKEN_CHAR
     | TOKEN_BOOL
     | TOKEN_SCAN
+    | TOKEN_AND
+    | TOKEN_OR
     | TOKEN_IF
     | TOKEN_THEN
     | TOKEN_ELSE
     | TOKEN_LET
     | TOKEN_IN
     | TOKEN_EOF
+    | TOKEN_TRUE
+    | TOKEN_FALSE
     | TOKEN_ID
     | TOKEN_STRINGLIT
     | TOKEN_CHARLIT

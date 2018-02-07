@@ -1,17 +1,17 @@
 ////////////////////////////////////////////////////////////////////
-// TODO: project task 1 
-//   implement lexer tokens for the new operators: 
-//   multiplication (*), division (/), numerical negation (~), 
+// TODO: project task 1
+//   implement lexer tokens for the new operators:
+//   multiplication (*), division (/), numerical negation (~),
 //   logical negation (not), logical and (&&), logical or (||),
 //   boolean literals (true, false)
 //
 //
-// TODO: project task 2 
-//   implement lexer tokens (keywords) for replicate, filter, scan 
+// TODO: project task 2
+//   implement lexer tokens (keywords) for replicate, filter, scan
 //
 //
-// TODO: project task 4 
-//   implement the lexer tokens (keywords) for array comprehension 
+// TODO: project task 4
+//   implement the lexer tokens (keywords) for array comprehension
 ////////////////////////////////////////////////////////////////////
 
 
@@ -64,6 +64,9 @@ let keyword (s, pos) =
        | "fn"           -> Parser.FN pos
        | "op"           -> Parser.OP pos
        | "scan"         -> Parser.SCAN pos
+       | "not"          -> Parser.NOT pos
+       | "true"         -> Parser.TRUE (true, pos)
+       | "false"        -> Parser.FALSE (false, pos)
 
 (* specials: *)
        | "iota"         -> Parser.IOTA pos
@@ -108,6 +111,8 @@ rule Token = parse
   | '-'                   { Parser.MINUS  (getPos lexbuf) }
   | '/'                   { Parser.DIV    (getPos lexbuf) }
   | '~'                   { Parser.NEG    (getPos lexbuf) }
+  | "&&"                  { Parser.AND    (getPos lexbuf) }
+  | "||"                  { Parser.OR     (getPos lexbuf) }
   | "=>"                  { Parser.ARROW  (getPos lexbuf) }
   | "=="                  { Parser.DEQ    (getPos lexbuf) }
   | '='                   { Parser.EQ     (getPos lexbuf) }

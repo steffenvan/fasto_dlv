@@ -169,23 +169,32 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
         match (res) with
           | (IntVal m) -> IntVal (-m)
           | _ -> invalidOperand "Division on non-integral args: " (Int) res pos
-
-
-  (* TODO: project task 1:
-     Look in `AbSyn.fs` for the arguments of the `Times`
-     (`Divide`,...) expression constructors.
-        Implementation similar to the cases of Plus/Minus.
-        Try to pattern match the code above.
-        For `And`/`Or`: make sure to implement the short-circuit semantics,
-        e.g., `And (e1, e2, pos)` should not evaluate `e2` if `e1` already
-              evaluates to false.
-  *)
-  | And (_, _, _) ->
-        failwith "Unimplemented interpretation of &&"
-  | Or (_, _, _) ->
-        failwith "Unimplemented interpretation of ||"
-  | Not(_, _) ->
-        failwith "Unimplemented interpretation of not"
+  | And(e1, e2, pos) ->
+        let res1    = evalExp(e1, vtab, ftab)
+        match (res1) with
+          | (BoolVal true) ->
+                let res2 = evalExp(e2, vtab, ftab)
+                match (res2) with
+                  | (BoolVal m2) -> BoolVal (m2)
+                  | _ -> invalidOperand "And-operator on non-boolean arg: " (Bool) res2 pos
+          | (BoolVal false) -> BoolVal (false)
+          | _ -> invalidOperand "And-operator on non-boolean arg: " (Bool) res1 pos
+  | Or(e1, e2, pos) ->
+        let res1    = evalExp(e1, vtab, ftab)
+        match (res1) with
+          | (BoolVal false) ->
+                let res2 = evalExp(e2, vtab, ftab)
+                match (res2) with
+                  | (BoolVal m2) -> BoolVal (m2)
+                  | _ -> invalidOperand "OR-operator on non-boolean arg: " (Bool) res2 pos
+          | (BoolVal true) -> BoolVal (true)
+          | _ -> invalidOperand "OR-operator on non-boolean arg: " (Bool) res1 pos
+  | Not(e1, pos) ->
+        let res1    = evalExp(e1, vtab, ftab)
+        match (res1) with
+          | (BoolVal false) -> BoolVal (true)
+          | (BoolVal true) -> BoolVal (false)
+          | _ -> invalidOperand "Not-operator on non-boolean arg: " (Bool) res1 pos
 
   | Equal(e1, e2, pos) ->
         let r1 = evalExp(e1, vtab, ftab)
