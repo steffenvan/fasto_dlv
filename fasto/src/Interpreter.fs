@@ -153,23 +153,30 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
           | (IntVal n1, IntVal n2) -> IntVal (n1-n2)
           | _ -> invalidOperands "Minus on non-integral args: " [(Int, Int)] res1 res2 pos
   | Times(e1, e2, pos) ->
-        let res1   = evalExp(e1, vtab, ftab)
-        let res2   = evalExp(e2, vtab, ftab)
+        let res1    = evalExp(e1, vtab, ftab)
+        let res2    = evalExp(e2, vtab, ftab)
         match (res1, res2) with
-          | (IntVal n1, IntVal n2) -> IntVal (n1-n2)
-          | _ -> invalidOperands "Times on non-integral args: " [(Int, Int)] res1 res2 pos
+          | (IntVal n1, IntVal n2) -> IntVal (n1*n2)
+          | _ -> invalidOperands "Multiplication on non-integral args: " [(Int, Int)] res1 res2 pos
+  | Divide(e1, e2, pos) ->
+        let res1    = evalExp(e1, vtab, ftab)
+        let res2    = evalExp(e2, vtab, ftab)
+        match (res1, res2) with
+          | (IntVal n1, IntVal n2) -> IntVal (n1/n2)
+          | _ -> invalidOperands "Division on non-integral args: " [(Int, Int)] res1 res2 pos
 
 
   (* TODO: project task 1:
-     Look in `AbSyn.fs` for the arguments of the `Times`
-     (`Divide`,...) expression constructors.
-        Implementation similar to the cases of Plus/Minus.
+     Look in `AbSyn.fs` for the arguments of the `Times` 
+     (`Divide`,...) expression constructors. 
+        Implementation similar to the cases of Plus/Minus. 
         Try to pattern match the code above.
         For `And`/`Or`: make sure to implement the short-circuit semantics,
         e.g., `And (e1, e2, pos)` should not evaluate `e2` if `e1` already
-              evaluates to false.
+              evaluates to false. 
   *)
-
+  | Times(_, _, _) ->        
+        failwith "Unimplemented interpretation of multiplication"
   | Divide(_, _, _) ->
         failwith "Unimplemented interpretation of division"
   | And (_, _, _) ->
@@ -264,12 +271,12 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
           | otherwise -> raise (MyError("Third argument of reduce is not an array: "+ppVal 0 arr
                                        , pos))
   (* TODO project task 2: `replicate(n, a)`
-     Look in `AbSyn.fs` for the arguments of the `Replicate`
+     Look in `AbSyn.fs` for the arguments of the `Replicate` 
      (`Map`,`Scan`) expression constructors.
        - evaluate `n` then evaluate `a`,
        - check that `n` evaluates to an integer value >= 0
-       - If so then create an array containing `n` replicas of
-         the value of `a`; otherwise raise an error (containing
+       - If so then create an array containing `n` replicas of 
+         the value of `a`; otherwise raise an error (containing 
          a meaningful message).
   *)
   | Replicate (_, _, _, _) ->
@@ -277,7 +284,7 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
 
   (* TODO project task 2: `filter(p, arr)`
        pattern match the implementation of map:
-       - check that the function `p` result type (use `rtpFunArg`) is bool;
+       - check that the function `p` result type (use `rtpFunArg`) is bool; 
        - evaluate `arr` and check that the (value) result corresponds to an array;
        - use F# `List.filter` to keep only the elements `a` of `arr` which succeed
          under predicate `p`, i.e., `p(a) = true`;
@@ -287,7 +294,7 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
         failwith "Unimplemented interpretation of map"
 
   (* TODO project task 2: `scan(f, ne, arr)`
-     Implementation similar to reduce, except that it produces an array
+     Implementation similar to reduce, except that it produces an array 
      of the same type and length to the input array `arr`.
   *)
   | Scan (_, _, _, _, _) ->
