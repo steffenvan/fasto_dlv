@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+# Shell script for running the fasto compiler.  Assumes that the
+# powerpack is in ../lib.
+
+base_dir="$(dirname "$0")"
+
+export MONO_PATH="$base_dir/../lib/"
+
+mono "$base_dir/Fasto.exe" "$@"
