@@ -109,21 +109,25 @@ and checkExp  (ftab : FunTable)
         See `AbSyn.fs` for the expression constructors of `Times`, ...
     *)
     | Times (e1, e2, p) ->
-        let (rt1, e1') = checkExp ftab vtab e1
-        let (rt2, e2') = checkExp ftab vtab e2
-        if (Int = rt1 && Int = rt2)
+        let (t1, e1') = checkExp ftab vtab e1
+        let (t2, e2') = checkExp ftab vtab e2
+        if (Int = t1 && Int = t2)
         then (Int, Times (e1', e2' p))
         else raise (MyError ("In Multiplication: one of subexpression types is not Int: "+ppType t1+" and "+ppType t2, pos))         
 
-    | Divide (_, _, _) ->
-        let (rt1, e1') = checkExp ftab vtab e1
-        let (rt2, e2') = checkExp ftab vtab e2
-        if (Int = rt1 && Int = rt2)
-        then (Int, Times (e1', e2' p))
+    | Divide (e1, e2, p) ->
+        let (t1, e1') = checkExp ftab vtab e1
+        let (t2, e2') = checkExp ftab vtab e2
+        if (Int = t1 && Int = t2)
+        then (Int, Divide (e1', e2' p))
         else raise (MyError ("In Division: one of subexpression types is not Int: "+ppType t1+" and "+ppType t2, pos))
 
-    | And (_, _, _) ->
-        failwith "Unimplemented type check of &&"
+    | And (e1, e2, p) ->
+        let (t1, e1') = checkExp ftab vtab e1
+        let (t2, e2') = checkExp ftab vtab e2
+        if (Bool = t1 && Bool = t2)
+        then (Bool, And (e1', e2' p))
+        else raise (MyError ("In And: one of subexpression types is not Int: "+ppType t1+" and "+ppType t2, pos))
 
     | Or (_, _, _) ->
         failwith "Unimplemented type check of ||"
