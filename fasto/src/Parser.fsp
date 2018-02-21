@@ -49,6 +49,7 @@ let parse_error_rich =
 %left DEQ LTH
 %left PLUS MINUS
 %left MULT DIV
+%left NEG
 
 %start Prog
 %type <AbSyn.UntypedProg> Prog

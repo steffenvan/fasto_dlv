@@ -1,0 +1,17 @@
+#include <stdio.h>
+#include <bool.h>
+
+int main (){
+
+  bool x0 = write_nl(3 / 2 == 1);
+  bool x1 = write_nl(~3 / 2 == ~2);
+  bool x2 = write_nl(3 /~2 == ~2);
+  bool x3 = write_nl(~3 /~2 == 1);
+
+  printf ("first: %b\n", x0);
+  printf ("second: %b\n", x1);
+  printf ("third: %b\n", x2);
+  printf ("fourth: %b\n", x3);
+
+  return 0;
+}

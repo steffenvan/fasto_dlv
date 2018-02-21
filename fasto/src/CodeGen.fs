@@ -165,16 +165,18 @@ let rec compileExp  (e      : TypedExp)
                   : Mips.Instruction list =
   match e with
   | Constant (IntVal n, pos) ->
-      if n < 0 then
-          compileExp (Negate (Constant (IntVal (-n), pos), pos)) vtable place
-      else if n < 32768 then
-          [ Mips.LI (place, makeConst n) ]
-      else
+    if n < 0 then
+        compileExp (Negate (Constant (IntVal (-n), pos), pos)) vtable place
+    else if n < 32768 then
+        [ Mips.LI (place, makeConst n) ]
+    else    
         [ Mips.LUI (place, makeConst (n / 65536))
         ; Mips.ORI (place, place, makeConst (n % 65536)) ]
-  | Constant (BoolVal _, _) ->
-      (* TODO project task 1: represent `true`/`false` values as `1`/`0` *)
-      failwith "Unimplemented code generation of boolean constants"
+  | Constant (BoolVal n, pos) ->
+        if n = false then
+            [ Mips.LI(place, "0") ]
+        else
+            [ Mips.LI(place, "1") ]
   | Constant (CharVal c, pos) -> [ Mips.LI (place, makeConst (int c)) ]
 
   (* Create/return a label here, collect all string literals of the program
@@ -261,12 +263,12 @@ let rec compileExp  (e      : TypedExp)
   | Not (e, pos) ->
       let t = newName "not_R"
       let code1 = compileExp e vtable t
-      code1 @ [Mips.]
+      code1 @ [Mips.XORI(place, place, "1")] 
 
   | Negate (e, pos) ->
       let t = newName "neg_R"
       let code1 = compileExp e vtable t
-      code1 @ [Mips.]
+      code1 @ [Mips.XORI(place, place, "65536"); Mips.ADDI(place, place, "1")] 
 
   | Let (dec, e1, pos) ->
       let (code1, vtable1) = compileDec dec vtable
