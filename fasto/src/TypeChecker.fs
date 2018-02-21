@@ -108,35 +108,45 @@ and checkExp  (ftab : FunTable)
         Implement by pattern matching Plus/Minus above.
         See `AbSyn.fs` for the expression constructors of `Times`, ...
     *)
-    | Times (e1, e2, p) ->
+    | Times (e1, e2, pos) ->
         let (t1, e1') = checkExp ftab vtab e1
         let (t2, e2') = checkExp ftab vtab e2
         if (Int = t1 && Int = t2)
-        then (Int, Times (e1', e2' p))
+        then (Int, Times (e1', e2', pos))
         else raise (MyError ("In Multiplication: one of subexpression types is not Int: "+ppType t1+" and "+ppType t2, pos))         
 
-    | Divide (e1, e2, p) ->
+    | Divide (e1, e2, pos) ->
         let (t1, e1') = checkExp ftab vtab e1
         let (t2, e2') = checkExp ftab vtab e2
         if (Int = t1 && Int = t2)
-        then (Int, Divide (e1', e2' p))
+        then (Int, Divide (e1', e2', pos))
         else raise (MyError ("In Division: one of subexpression types is not Int: "+ppType t1+" and "+ppType t2, pos))
 
-    | And (e1, e2, p) ->
+    | And (e1, e2, pos) ->
         let (t1, e1') = checkExp ftab vtab e1
         let (t2, e2') = checkExp ftab vtab e2
         if (Bool = t1 && Bool = t2)
-        then (Bool, And (e1', e2' p))
-        else raise (MyError ("In And: one of subexpression types is not Int: "+ppType t1+" and "+ppType t2, pos))
+        then (Bool, And (e1', e2', pos))
+        else raise (MyError ("In And: one of subexpression types is not Bool: "+ppType t1+" and "+ppType t2, pos))
 
-    | Or (_, _, _) ->
-        failwith "Unimplemented type check of ||"
+    | Or (e1, e2, pos) ->
+        let (t1, e1') = checkExp ftab vtab e1
+        let (t2, e2') = checkExp ftab vtab e2
+        if (Bool = t1 && Bool = t2)
+        then (Bool, Or (e1', e2', pos))
+        else raise (MyError ("In Or: one of subexpression types is not Bool: "+ppType t1+" and "+ppType t2, pos))
 
-    | Not (_, _) ->
-        failwith "Unimplemented type check of not"
+    | Not (e, pos) ->
+        let (t, e') = checkExp ftab vtab e
+        if (Bool = t)
+        then (Bool, Not(e, pos))
+        else raise (MyError ("In Not: the subexpression type is not Bool: "+ppType t, pos))
 
-    | Negate (_, _) ->
-        failwith "Unimplemented type check of negate"
+    | Negate (e, pos) ->
+        let (t, e') = checkExp ftab vtab e
+        if (Int = t)
+        then (Int, Negate(e, pos))
+        else raise (MyError ("In Negate: the subexpression type is not Int: "+ppType t, pos))
 
     (* The types for e1, e2 must be the same. The result is always a Bool. *)
     | Equal (e1, e2, pos) ->
