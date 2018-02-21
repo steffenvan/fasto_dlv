@@ -646,9 +646,9 @@ let rec compileExp  (e      : TypedExp)
         the current location of the result iterator at every iteration of
         the loop. 
   *)
-  | Scan (binop, acc_exp, arr_exp, elem_type, ois) ->
+  | Scan (binop, acc_exp, arr_exp, elem_type, pos) ->
     let res_it   = newName "res_reg" 
-    let inp_ut   = newname "inp_reg"
+    let inp_it   = newName "inp_reg"
     let len_reg  = newName "size_reg"
     let i_reg    = newName "ind_var"
     let acc_reg  = newName "acc_reg"
@@ -671,8 +671,8 @@ let rec compileExp  (e      : TypedExp)
     [Mips.LW (tmp_reg, inp_it, "0")] @ 
     applyFunArg (binop, [acc_reg; tmp_reg], vtable, acc_reg, pos) @
     [Mips.SW (acc_reg, res_it, "0"); Mips.ADDI (res_it, res_it, "4"); 
-    Mips.ADDI (inp_it, inp_it, "4"); Mips.ADDI (i_reg, i_reg "1")] @ 
-    [Muos.J loop_beg; Mips.LABEL loop_end]
+    Mips.ADDI (inp_it, inp_it, "4"); Mips.ADDI (i_reg, i_reg, "1")] @ 
+    [Mips.J loop_beg; Mips.LABEL loop_end]
 
 and applyFunArg ( ff     : TypedFunArg
                 , args   : Mips.reg list
