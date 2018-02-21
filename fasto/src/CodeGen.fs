@@ -244,17 +244,29 @@ let rec compileExp  (e      : TypedExp)
         `Times` and `Divide` are very similar to `Plus`/`Minus`
         `Not` and `Negate` are simpler; you can use `Mips.XORI` for `Not`
   *)
-  | Times (_, _, _) ->
-      failwith "Unimplemented code generation of multiplication"
+  | Times (e1, e2, pos) ->
+    let t1 = newName "mult_L"
+    let t2 = newName "mult_R"
+    let code1 = compileExp e1 vtable t1
+    let code2 = compileExp e2 vtable t2
+    code1 @ code2 @ [Mips.MUL (place,t1,t2)]
 
-  | Divide (_, _, _) ->
-      failwith "Unimplemented code generation of division"
+  | Divide (e1, e2, pos) ->
+      let t1 = newName "div_L"
+      let t2 = newName "div_R"
+      let code1 = compileExp e1 vtable t1
+      let code2 = compileExp e2 vtable t2
+      code1 @ code2 @ [Mips.DIV (place,t1,t2)]
 
-  | Not (_, _) ->
-      failwith "Unimplemented code generation of not"
+  | Not (e, pos) ->
+      let t = newName "not_R"
+      let code1 = compileExp e vtable t
+      code1 @ [Mips.]
 
-  | Negate (_, _) ->
-      failwith "Unimplemented code generation of negate"
+  | Negate (e, pos) ->
+      let t = newName "neg_R"
+      let code1 = compileExp e vtable t
+      code1 @ [Mips.]
 
   | Let (dec, e1, pos) ->
       let (code1, vtable1) = compileDec dec vtable

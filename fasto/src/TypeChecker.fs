@@ -138,16 +138,23 @@ and checkExp  (ftab : FunTable)
 
     | Not (e, pos) ->
         let (t, e') = checkExp ftab vtab e
-        if (Bool = t)
-        then (Bool, Not(e, pos))
+        if Bool = t
+        then (Bool, Not (e', pos))
         else raise (MyError ("In Not: the subexpression type is not Bool: "+ppType t, pos))
 
     | Negate (e, pos) ->
         let (t, e') = checkExp ftab vtab e
-        if (Int = t)
-        then (Int, Negate(e, pos))
+        if Int = t
+        then (Int, Negate (e', pos))
         else raise (MyError ("In Negate: the subexpression type is not Int: "+ppType t, pos))
 
+    (*
+    | Iota (n_exp, pos) ->
+        let (e_type, n_exp_dec) = checkExp ftab vtab n_exp
+        if e_type = Int
+        then (Array Int, Iota (n_exp_dec, pos))
+        else raise (MyError ("Iota: wrong argument type "+ppType e_type, pos))
+    *)
     (* The types for e1, e2 must be the same. The result is always a Bool. *)
     | Equal (e1, e2, pos) ->
         let  (t1, e1') = checkExp ftab vtab e1
@@ -223,7 +230,7 @@ and checkExp  (ftab : FunTable)
         (arr_type, Index (s, i_exp_dec, arr_type, pos))
 
     | Iota (n_exp, pos) ->
-        let  (e_type, n_exp_dec) = checkExp ftab vtab n_exp
+        let (e_type, n_exp_dec) = checkExp ftab vtab n_exp
         if e_type = Int
         then (Array Int, Iota (n_exp_dec, pos))
         else raise (MyError ("Iota: wrong argument type "+ppType e_type, pos))
