@@ -646,8 +646,33 @@ let rec compileExp  (e      : TypedExp)
         the current location of the result iterator at every iteration of
         the loop. 
   *)
-  | Scan (_, _, _, _, _) ->
-      failwith "Unimplemented code generation of scan"
+  | Scan (binop, acc_exp, arr_exp, elem_type, ois) ->
+    let res_it   = newName "res_reg" 
+    let inp_ut   = newname "inp_reg"
+    let len_reg  = newName "size_reg"
+    let i_reg    = newName "ind_var"
+    let acc_reg  = newName "acc_reg"
+    let tmp_reg  = newName "tmp_reg"
+    let loop_beg = newName "loop_beg"
+    let loop_end = newName "loop_end"
+
+    let inp_code = compileExp arr_exp vtable inp_it
+    let acc_code = compileExp acc_exp vtable acc_reg
+    let len_code = [Mips.LW (len_reg, inp_it, "0"); Mips.ADDI(inp_it, inp_it, "4")]
+
+    let loop_code =
+              [ Mips.LABEL(loop_beg)
+              ; Mips.SUB(tmp_reg, i_reg, len_reg)
+              ; Mips.BGEZ(tmp_reg, loop_end)
+              ]
+
+    inp_code @ acc_code @ len_code @ dynalloc (len_reg, place, elem_type) @
+    [Mips.ADDI (res_it, place, "4"); Mips.MOVE (i_reg, "0")] @ loop_code @
+    [Mips.LW (tmp_reg, inp_it, "0")] @ 
+    applyFunArg (binop, [acc_reg; tmp_reg], vtable, acc_reg, pos) @
+    [Mips.SW (acc_reg, res_it, "0"); Mips.ADDI (res_it, res_it, "4"); 
+    Mips.ADDI (inp_it, inp_it, "4"); Mips.ADDI (i_reg, i_reg "1")] @ 
+    [Muos.J loop_beg; Mips.LABEL loop_end]
 
 and applyFunArg ( ff     : TypedFunArg
                 , args   : Mips.reg list
