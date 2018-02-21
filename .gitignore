@@ -1,4 +1,4 @@
 bin/*.dll
 bin/Fasto.exe
-.DS_Store
+fasto/.DS_Store
 
