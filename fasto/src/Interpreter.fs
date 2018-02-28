@@ -319,8 +319,8 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
         let nel           = evalExp(ne, vtab, ftab)
         match arr with
           | ArrayVal (lst, tp1) ->
-            ArrayVal(List.scan (fun acc x -> evalFunArg (farg, vtab, ftab, pos, [acc;x])) nel lst, tp1)
-          | otherwise -> raise (MyError("Third argument of reduce is not an array: "+ppVal 0 arr
+            ArrayVal(List.tail(List.scan (fun acc x -> evalFunArg (farg, vtab, ftab, pos, [acc;x])) nel lst), tp1)
+          | otherwise -> raise (MyError("Third argument of scan is not an array: "+ppVal 0 arr
                                        , pos))
 
   | Read (t,p) ->

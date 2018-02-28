@@ -1,0 +1,9 @@
+fun bool incr(int a) = 1 < a
+
+fun int writeInt (int n) = write(n)
+
+fun [int] main() =
+    let a = read(int) in 
+        let  c = iota(a) in
+        let b = filter (incr, c) in
+            map(writeInt, b)
