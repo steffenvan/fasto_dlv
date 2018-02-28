@@ -322,11 +322,11 @@ and checkExp  (ftab : FunTable)
               | Array t -> t
               | other -> raise (MyError ("Scan: Argument not an array", pos))
 
-        let (f', f_arg_type) =
+        let (f', f_res_type, f_arg_type) =
             match checkFunArg ftab vtab pos f with
               | (f', res, [a1; a2]) ->
                   if a1 = a2 && a2 = res
-                  then (f', res)
+                  then (f', res, a1)
                   else raise (MyError( "Scan: incompatible function type of " +
                                        (ppFunArg 0 f) + ": " + showFunType ([a1; a2], res)
                                      , pos))
@@ -340,12 +340,33 @@ and checkExp  (ftab : FunTable)
                                  , pos)
 
         if   elem_type = f_arg_type && elem_type = n_type then
-             (elem_type, Scan (f', n_dec, arr_dec, elem_type, pos))
+             (Array elem_type, Scan (f', n_dec, arr_dec, elem_type, pos))
         elif elem_type = f_arg_type then
              raise (err ("neutral element", n_type))
         else raise (err ("array element", elem_type))
         
+(*
+  | Map (f, arr_exp, _, _, pos) ->
+        let (arr_type, arr_exp_dec) = checkExp ftab vtab arr_exp
+        let elem_type =
+            match arr_type with
+              | Array t -> t
+              | other   -> raise (MyError ("Map: Argument not an array", pos))
+        let (f', f_res_type, f_arg_type) =
+            match checkFunArg ftab vtab pos f with
+              | (f', res, [a1]) -> (f', res, a1)
+              | (_,  res, args) ->
+                   raise (MyError ( "Map: incompatible function type of " +
+                                    ppFunArg 0 f + ":" + showFunType (args, res)
+                                  , pos ))
+        if elem_type = f_arg_type
+        then ( Array f_res_type
+             , Map (f', arr_exp_dec, elem_type, f_res_type, pos) )
+        else raise (MyError( "Map: array element types does not match." +
+                             ppType elem_type + " instead of " + ppType f_arg_type
+                           , pos))
 
+*)
 and checkFunArg  (ftab : FunTable)
                  (vtab : VarTable)
                  (pos  : Position)
