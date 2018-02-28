@@ -17,6 +17,7 @@ type token =
   | LTH of ((int*int))
   | EQ of ((int*int))
   | OP of ((int*int))
+  | FILTER of ((int*int))
   | MAP of ((int*int))
   | REDUCE of ((int*int))
   | IOTA of ((int*int))
@@ -63,6 +64,7 @@ type tokenId =
     | TOKEN_LTH
     | TOKEN_EQ
     | TOKEN_OP
+    | TOKEN_FILTER
     | TOKEN_MAP
     | TOKEN_REDUCE
     | TOKEN_IOTA

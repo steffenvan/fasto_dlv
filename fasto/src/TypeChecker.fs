@@ -305,8 +305,29 @@ and checkExp  (ftab : FunTable)
             - `arr` should be of type `[ta]`
             - the result of filter should have type `[tb]`
     *)
-    | Filter (_, _, _, _) ->
-        failwith "Unimplemented type check of map"
+    | Filter (f, arr_exp, _, pos) ->
+        let (arr_type, arr_exp_dec) = checkExp ftab vtab arr_exp
+        let elem_type =
+            match arr_type with
+                | Array t -> t
+                | other   -> raise (MyError ("Filter: Argument not an array", pos))
+        let (f', f_res_type, f_arg_type) =
+            match checkFunArg ftab vtab pos f with
+                | (f', res, [a1]) -> 
+                    if elem_type = a1 
+                    then (f', res, a1)
+                    else raise (MyError ("Filter: Element type does not match function arg", pos))
+                | (_,  res, args) ->
+                    raise (MyError ( "Filter: incompatible function type of " +
+                                ppFunArg 0 f + ":" + showFunType (args, res)
+                                , pos ))
+        if f_res_type = Bool
+        then ( Array elem_type
+            , Filter (f', arr_exp_dec, elem_type, pos) )
+        else raise (MyError( "Filter: array element types does not match." +
+                            ppType elem_type + " instead of " + ppType f_arg_type
+                        , pos))
+
 
     (* TODO project task 2: `scan(f, ne, arr)` 
         Hint: Implementation is very similar to `reduce(f, ne, arr)`.
@@ -322,11 +343,11 @@ and checkExp  (ftab : FunTable)
               | Array t -> t
               | other -> raise (MyError ("Scan: Argument not an array", pos))
 
-        let (f', f_res_type, f_arg_type) =
+        let (f', f_res_type) =
             match checkFunArg ftab vtab pos f with
               | (f', res, [a1; a2]) ->
                   if a1 = a2 && a2 = res
-                  then (f', res, a1)
+                  then (f', res)
                   else raise (MyError( "Scan: incompatible function type of " +
                                        (ppFunArg 0 f) + ": " + showFunType ([a1; a2], res)
                                      , pos))
@@ -336,14 +357,14 @@ and checkExp  (ftab : FunTable)
                                  , pos))
 
         let err (s, t) = MyError ( "Scan: unexpected " + s + " type " + ppType t +
-                                   ", expected " + ppType f_arg_type
+                                   ", expected " + ppType f_res_type
                                  , pos)
 
-        if   elem_type = f_arg_type && elem_type = n_type then
-             (Array elem_type, Scan (f', n_dec, arr_dec, elem_type, pos))
-        elif elem_type = f_arg_type then
-             raise (err ("neutral element", n_type))
-        else raise (err ("array element", elem_type))
+        if   elem_type <> f_res_type 
+        then raise (err ("array element", elem_type))
+        elif elem_type <> n_type 
+        then raise (err ("neutral element", n_type))
+        else (Array elem_type, Scan (f', n_dec, arr_dec, elem_type, pos))
         
 (*
   | Map (f, arr_exp, _, _, pos) ->

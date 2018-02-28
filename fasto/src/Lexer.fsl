@@ -68,6 +68,7 @@ let keyword (s, pos) =
        | "false"        -> Parser.FALSE (false, pos)
 
 (* specials: *)
+       | "filter"       -> Parser.FILTER pos
        | "iota"         -> Parser.IOTA pos
        | "map"          -> Parser.MAP  pos
        | "reduce"       -> Parser.REDUCE pos
