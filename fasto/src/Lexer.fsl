@@ -63,7 +63,6 @@ let keyword (s, pos) =
        | "fun"          -> Parser.FUN pos
        | "fn"           -> Parser.FN pos
        | "op"           -> Parser.OP pos
-       | "scan"         -> Parser.SCAN pos
        | "not"          -> Parser.NOT pos
        | "true"         -> Parser.TRUE (true, pos)
        | "false"        -> Parser.FALSE (false, pos)
@@ -72,10 +71,10 @@ let keyword (s, pos) =
        | "iota"         -> Parser.IOTA pos
        | "map"          -> Parser.MAP  pos
        | "reduce"       -> Parser.REDUCE pos
+       | "scan"         -> Parser.SCAN pos
        | "read"         -> Parser.READ pos
        | "write"        -> Parser.WRITE pos
        | _              -> Parser.ID (s, pos)
-
 }
 
 rule Token = parse

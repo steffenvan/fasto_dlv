@@ -45,6 +45,7 @@ let parse_error_rich =
 %token <(int*int)> FUN FN COMMA SEMICOLON READ WRITE
 %token <(int*int)> LPAR RPAR LBRACKET RBRACKET LCURLY RCURLY
 
+
 %nonassoc ifprec letprec
 %left DEQ LTH
 %left PLUS MINUS
@@ -135,6 +136,10 @@ Exp : NUM            { Constant (IntVal  (fst $1), snd $1) }
                      { Reduce ($3, $5, $7, (), $1) }
     | REDUCE LPAR OP BinOp COMMA Exp COMMA Exp RPAR
                      { Reduce ($4, $6, $8, (), $1) }
+    | SCAN LPAR FunArg COMMA Exp COMMA Exp RPAR
+                     { Scan   ($3, $5, $7, (), $1) }
+    | SCAN LPAR OP BinOp COMMA Exp COMMA Exp RPAR
+                     { Scan   ($4, $6, $8, (), $1) }
     | LPAR Exp RPAR  { $2 }
     | LET ID EQ Exp IN Exp %prec letprec
                      { Let (Dec (fst $2, $4, $3), $6, $1) }
