@@ -293,8 +293,12 @@ and checkExp  (ftab : FunTable)
         - assuming `a` is of type `t` the result type 
           of replicate is `[t]`
     *)
-    | Replicate (_, _, _, _) ->
-        failwith "Unimplemented type check of replicate"
+    | Replicate (n, exp, _, pos) ->
+        let (n_type, n_dec)     = checkExp ftab vtab n
+        let (exp_type, exp_dec) = checkExp ftab vtab exp
+        if n_type <> Int
+        then raise (MyError ("Replicate: wrong argument type"+ppType n_type, pos)) 
+        else (Array exp_type, Replicate (n_dec, exp_dec, exp_type, pos))
 
     (* TODO project task 2: Hint for `filter(f, arr)`
         Look into the type-checking lecture slides for the type rule of `map`
@@ -316,7 +320,7 @@ and checkExp  (ftab : FunTable)
                 | (f', res, [a1]) -> 
                     if elem_type = a1 
                     then (f', res, a1)
-                    else raise (MyError ("Filter: Element type does not match function arg", pos))
+                    else raise (MyError ("Filter: Element type does not match function arg", pos))  
                 | (_,  res, args) ->
                     raise (MyError ( "Filter: incompatible function type of " +
                                 ppFunArg 0 f + ":" + showFunType (args, res)
@@ -366,28 +370,6 @@ and checkExp  (ftab : FunTable)
         then raise (err ("neutral element", n_type))
         else (Array elem_type, Scan (f', n_dec, arr_dec, elem_type, pos))
         
-(*
-  | Map (f, arr_exp, _, _, pos) ->
-        let (arr_type, arr_exp_dec) = checkExp ftab vtab arr_exp
-        let elem_type =
-            match arr_type with
-              | Array t -> t
-              | other   -> raise (MyError ("Map: Argument not an array", pos))
-        let (f', f_res_type, f_arg_type) =
-            match checkFunArg ftab vtab pos f with
-              | (f', res, [a1]) -> (f', res, a1)
-              | (_,  res, args) ->
-                   raise (MyError ( "Map: incompatible function type of " +
-                                    ppFunArg 0 f + ":" + showFunType (args, res)
-                                  , pos ))
-        if elem_type = f_arg_type
-        then ( Array f_res_type
-             , Map (f', arr_exp_dec, elem_type, f_res_type, pos) )
-        else raise (MyError( "Map: array element types does not match." +
-                             ppType elem_type + " instead of " + ppType f_arg_type
-                           , pos))
-
-*)
 and checkFunArg  (ftab : FunTable)
                  (vtab : VarTable)
                  (pos  : Position)

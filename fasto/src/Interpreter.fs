@@ -287,8 +287,17 @@ let rec evalExp (e : UntypedExp, vtab : VarTable, ftab : FunTable) : Value =
          the value of `a`; otherwise raise an error (containing
          a meaningful message).
   *)
-  | Replicate (_, _, _, _) ->
-        failwith "Unimplemented interpretation of replicate"
+  | Replicate (n, a, _, pos) ->
+        let sz    = evalExp(n, vtab, ftab)
+        let a_exp = evalExp(a, vtab, ftab)
+        match sz with
+          | IntVal size -> 
+              if size >= 0
+              then ArrayVal(List.replicate size a_exp, valueType(a_exp))
+              else let msg = sprintf "Error: In replicate call, size is negative: %i" size
+                   raise (MyError(msg, pos))
+          | _ -> raise (MyError("Replicate argument is not a number: "+ppVal 0 sz, pos))
+
 
   (* TODO project task 2: `filter(p, arr)`
        pattern match the implementation of map:
