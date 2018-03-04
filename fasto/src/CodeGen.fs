@@ -639,8 +639,59 @@ let rec compileExp  (e      : TypedExp)
         If `n` is less than `0` then remember to terminate the program with
         an error -- see implementation of `iota`.        
   *)
-  | Replicate (_, _, _, _) ->
-      failwith "Unimplemented code generation of replicate"
+  | Replicate (n, a, _, (line, _)) ->
+      let size_reg = newName "size_reg"
+      let n_code = compileExp n vtable size_reg
+      let val_reg = newName "val_reg"
+      let a_code = compileExp a vtable val_reg
+      (*  size_reg is now the integer n. 
+          val_reg now contains type of a        
+      *)
+
+      (* Check that array size N >= 0:
+         if N - 1 >= 0 then jumpto safe_lab
+         jumpto "_IllegalArrSizeError_"
+         safe_lab: ...
+      *)
+      let safe_lab    = newName "safe_lab"
+      let checksize   = [ Mips.ADDI (size_reg, size_reg, "-1")
+                        ; Mips.BGEZ (size_reg, safe_lab)
+                        ; Mips.LI ("5", makeConst line)
+                        ; Mips.J "_IllegalArrSizeError_"
+                        ; Mips.LABEL (safe_lab)
+                        ; Mips.ADDI (size_reg, size_reg, "1")
+                        ]
+
+      let addr_reg    = newName "addr_reg"
+      let i_reg       = newName "i_reg"
+      let init_regs   = [ Mips.ADDI (addr_reg, place, "4")
+                      ; Mips.MOVE (i_reg, "0") ]
+      (* addr_reg is now the position of the first array element. *)
+
+      (* Run a loop.  Keep jumping back to loop_beg until it is not the
+         case that i_reg < size_reg, and then jump to loop_end. *)
+      let loop_beg    = newName "loop_beg"
+      let loop_end    = newName "loop_end"
+      let tmp_reg     = newName "tmp_reg"
+      let loop_header = [ Mips.LABEL (loop_beg)
+                        ; Mips.SUB (tmp_reg, i_reg, size_reg)
+                        ; Mips.BGEZ (tmp_reg, loop_end)
+                        ]
+      (* replicate is just 'arr[i] = i'.  arr[i] is addr_reg. *)
+      let loop_replicate   = [ Mips.SW (val_reg, addr_reg, "0") ]
+
+      let loop_footer = [ Mips.ADDI (addr_reg, addr_reg, "4")
+                        ; Mips.ADDI (i_reg, i_reg, "1")
+                        ; Mips.J loop_beg
+                        ; Mips.LABEL loop_end
+                        ]
+      n_code
+       @ checksize
+       @ dynalloc (size_reg, place, Int)
+       @ init_regs
+       @ loop_header
+       @ loop_replicate
+       @ loop_footer
 
   (* TODO project task 2: see also the comment to replicate.
      (a) `filter(f, arr)`:  has some similarity with the implementation of map.
