@@ -713,7 +713,6 @@ let rec compileExp  (e      : TypedExp)
       let arr_reg  = newName "arr_reg"  (* address of array *)
       let elem_reg = newName "elem_reg" (* address of single element *)
       let res_reg  = newName "res_reg"
-      let inp_reg  = newName "inp_reg"
       let arr_code = compileExp arr_exp vtable arr_reg
 
       let get_size = [ Mips.LW (size_reg, arr_reg, "0") ]
@@ -727,7 +726,7 @@ let rec compileExp  (e      : TypedExp)
                       ]
       let loop_beg = newName "loop_beg"
       let loop_end = newName "loop_end"
-      let loop_footer = newName "loop_footer"
+      let incr_arr = newName "incr_arr"
       let tmp_reg = newName "tmp_reg"
 
       let loop_header = [ Mips.LABEL (loop_beg)
@@ -735,25 +734,28 @@ let rec compileExp  (e      : TypedExp)
                         ; Mips.BGEZ (tmp_reg, loop_end) ]
       let loop_filter0 =
               match getElemSize elem_type with
-              | One  -> [Mips.LB(res_reg, elem_reg, "0")]
-                              @ Mips.LB(inp_reg, elem_reg, "0")
-                              :: applyFunArg(farg, [inp_reg], vtable, res_reg, pos)
-                              @  [ Mips.ADDI(elem_reg, elem_reg, "1") ]
-                              @  [ Mips.BEQ(res_reg, "0", loop_footer) ]
+              | One  -> Mips.LB(res_reg, elem_reg, "0")
+                              :: applyFunArg(farg, [res_reg], vtable, res_reg, pos)
+                              @ [ Mips.BEQ(res_reg, "0", incr_arr) ]
               | Four -> [Mips.LW(res_reg, elem_reg, "0")] 
                               @ Mips.LW(inp_reg, elem_reg, "0")
-                              :: applyFunArg(farg, [inp_reg], vtable, res_reg, pos)
-                              @ [ Mips.ADDI(elem_reg, elem_reg, "4") ]
-                              @ [ Mips.BEQ(res_reg, "0", loop_footer) ]
+                              :: applyFunArg(farg, [res_reg], vtable, res_reg, pos)
+                              @ [ Mips.BEQ(res_reg, "0", incr_arr) ]
+
       let loop_filter1 =
               match getElemSize elem_type with
-                | One  -> [ Mips.SB (inp_reg, addr_reg, "0") ] @ [ Mips.ADDI (j_reg, j_reg, "1")]
-                | Four -> [ Mips.SW (inp_reg, addr_reg, "0") ] @ [ Mips.ADDI (j_reg, j_reg, "1")]
+                | One  -> [ Mips.SB (elem_reg, addr_reg, "0") ] @ [ Mips.ADDI (j_reg, j_reg, "1")] 
+                @ [Mips.ADDI (addr_reg, addr_reg, "1")]
+                | Four -> [ Mips.SW (elem_reg, addr_reg, "0") ] @ [ Mips.ADDI (j_reg, j_reg, "1")]
+                @ [Mips.ADDI (addr_reg, addr_reg, "4")]
+
+        let incr_arr = 
+                match getElemSize elem_type with
+                  | One  -> [ Mips.LABEL(incr_arr) ] @ [ Mips.ADDI(elem_reg, elem_reg, "1") ] 
+                  | Four -> [ Mips.LABEL(incr_arr) ] @ [ Mips.ADDI(elem_reg, elem_reg, "4") ] 
 
       let loop_footer =
-        [Mips.ADDI (addr_reg, addr_reg,
-                      makeConst (elemSizeToInt (getElemSize elem_type)))
-        ; Mips.LABEL(loop_footer) 
+       [
         ; Mips.ADDI (i_reg, i_reg, "1")
         ; Mips.J loop_beg
         ; Mips.LABEL loop_end
@@ -766,6 +768,7 @@ let rec compileExp  (e      : TypedExp)
        @ loop_header
        @ loop_filter0
        @ loop_filter1
+       @ incr_arr
        @ loop_footer
 
 
