@@ -66,8 +66,8 @@ let rec removeDeadBindingsInExp (e : TypedExp) : (bool * DBRtab * TypedExp) =
         | Index (name, e, t, pos) ->
             let (io, uses, e') = removeDeadBindingsInExp e
             (io,
-            recordUse name (SymTab.empty()),
-            Index(name, e', t, pos))
+                recordUse name (SymTab.empty()),
+                Index(name, e', t, pos))
 
         | Let (Dec (name, e, decpos), body, pos) ->
             let (io_body, vtab_body, body') = removeDeadBindingsInExp body

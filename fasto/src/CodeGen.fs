@@ -737,17 +737,16 @@ let rec compileExp  (e      : TypedExp)
               | One  -> Mips.LB(res_reg, elem_reg, "0")
                               :: applyFunArg(farg, [res_reg], vtable, res_reg, pos)
                               @ [ Mips.BEQ(res_reg, "0", incr_arr) ]
-              | Four -> [Mips.LW(res_reg, elem_reg, "0")] 
-                              @ Mips.LW(inp_reg, elem_reg, "0")
+              | Four -> Mips.LW(res_reg, elem_reg, "0")
                               :: applyFunArg(farg, [res_reg], vtable, res_reg, pos)
                               @ [ Mips.BEQ(res_reg, "0", incr_arr) ]
 
       let loop_filter1 =
               match getElemSize elem_type with
                 | One  -> [ Mips.SB (elem_reg, addr_reg, "0") ] @ [ Mips.ADDI (j_reg, j_reg, "1")] 
-                @ [Mips.ADDI (addr_reg, addr_reg, "1")]
+                        @ [Mips.ADDI (addr_reg, addr_reg, "1")]
                 | Four -> [ Mips.SW (elem_reg, addr_reg, "0") ] @ [ Mips.ADDI (j_reg, j_reg, "1")]
-                @ [Mips.ADDI (addr_reg, addr_reg, "4")]
+                        @ [Mips.ADDI (addr_reg, addr_reg, "4")]
 
       let incr_arr = 
                 match getElemSize elem_type with
