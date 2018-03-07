@@ -720,12 +720,10 @@ let rec compileExp  (e      : TypedExp)
       let addr_reg = newName "addr_reg" (* address of element in new array *)
       let i_reg    = newName "i_reg"
       let j_reg    = newName "j_reg"
-
       let init_regs = [ Mips.ADDI (addr_reg, place, "4")
                       ; Mips.MOVE (i_reg, "0")
                       ; Mips.ADDI (elem_reg, arr_reg, "4")
                       ]
-
       let loop_beg = newName "loop_beg"
       let loop_end = newName "loop_end"
       let incr_arr = newName "incr_arr"
@@ -734,36 +732,35 @@ let rec compileExp  (e      : TypedExp)
       let loop_header = [ Mips.LABEL (loop_beg)
                         ; Mips.SUB (tmp_reg, i_reg, size_reg)
                         ; Mips.BGEZ (tmp_reg, loop_end) ]
-
       let loop_filter0 =
               match getElemSize elem_type with
               | One  -> Mips.LB(res_reg, elem_reg, "0")
                               :: applyFunArg(farg, [res_reg], vtable, res_reg, pos)
                               @ [ Mips.BEQ(res_reg, "0", incr_arr) ]
-              | Four -> Mips.LW(res_reg, elem_reg, "0")
+              | Four -> [Mips.LW(res_reg, elem_reg, "0")] 
+                              @ Mips.LW(inp_reg, elem_reg, "0")
                               :: applyFunArg(farg, [res_reg], vtable, res_reg, pos)
                               @ [ Mips.BEQ(res_reg, "0", incr_arr) ]
 
       let loop_filter1 =
               match getElemSize elem_type with
                 | One  -> [ Mips.SB (elem_reg, addr_reg, "0") ] @ [ Mips.ADDI (j_reg, j_reg, "1")] 
-                                @ [Mips.ADDI (addr_reg, addr_reg, "1")]
+                @ [Mips.ADDI (addr_reg, addr_reg, "1")]
                 | Four -> [ Mips.SW (elem_reg, addr_reg, "0") ] @ [ Mips.ADDI (j_reg, j_reg, "1")]
-                                @ [Mips.ADDI (addr_reg, addr_reg, "4")]
+                @ [Mips.ADDI (addr_reg, addr_reg, "4")]
 
       let incr_arr = 
-              match getElemSize elem_type with
-                | One  -> [ Mips.LABEL(incr_arr) ] @ [ Mips.ADDI(elem_reg, elem_reg, "1") ] 
-                | Four -> [ Mips.LABEL(incr_arr) ] @ [ Mips.ADDI(elem_reg, elem_reg, "4") ] 
+                match getElemSize elem_type with
+                  | One  -> [ Mips.LABEL(incr_arr) ] @ [ Mips.ADDI(elem_reg, elem_reg, "1") ] 
+                  | Four -> [ Mips.LABEL(incr_arr) ] @ [ Mips.ADDI(elem_reg, elem_reg, "4") ] 
 
       let loop_footer =
-        [
-          Mips.ADDI (i_reg, i_reg, "1")
-        ; Mips.J loop_beg
-        ; Mips.LABEL loop_end
-        ; Mips.SW(j_reg, place, "0")
-        ]
-
+          [
+            Mips.ADDI (i_reg, i_reg, "1")
+          ; Mips.J loop_beg
+          ; Mips.LABEL loop_end
+          ; Mips.SW(j_reg, place, "0")
+          ]
       arr_code
        @ get_size
        @ dynalloc (size_reg, place, elem_type)
@@ -802,13 +799,17 @@ let rec compileExp  (e      : TypedExp)
               ; Mips.BGEZ(tmp_reg, loop_end)
               ]
 
-    inp_code @ acc_code @ len_code @ dynalloc (len_reg, place, elem_type) @
-    [Mips.ADDI (res_it, place, "4"); Mips.MOVE (i_reg, "0")] @ loop_code @
-    [Mips.LW (tmp_reg, inp_it, "0")] @ 
-    applyFunArg (binop, [acc_reg; tmp_reg], vtable, acc_reg, pos) @
-    [Mips.SW (acc_reg, res_it, "0"); Mips.ADDI (res_it, res_it, "4"); 
-    Mips.ADDI (inp_it, inp_it, "4"); Mips.ADDI (i_reg, i_reg, "1")] @ 
-    [Mips.J loop_beg; Mips.LABEL loop_end]
+    inp_code 
+    @ acc_code 
+    @ len_code 
+    @ dynalloc (len_reg, place, elem_type) 
+    @ [Mips.ADDI (res_it, place, "4"); Mips.MOVE (i_reg, "0")] 
+    @ loop_code 
+    @ [Mips.LW (tmp_reg, inp_it, "0")] 
+    @ applyFunArg (binop, [acc_reg; tmp_reg], vtable, acc_reg, pos) 
+    @ [Mips.SW (acc_reg, res_it, "0"); Mips.ADDI (res_it, res_it, "4"); 
+    Mips.ADDI (inp_it, inp_it, "4"); Mips.ADDI (i_reg, i_reg, "1")] 
+    @ [Mips.J loop_beg; Mips.LABEL loop_end]
 
 and applyFunArg ( ff     : TypedFunArg
                 , args   : Mips.reg list
