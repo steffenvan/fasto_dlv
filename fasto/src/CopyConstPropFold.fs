@@ -38,27 +38,18 @@ let rec copyConstPropFoldExp (vtable : VarTable)
         | Let (Dec (name, e, decpos), body, pos) ->
             let e' = copyConstPropFoldExp vtable e
             match e' with
-                | Var (name, pos) -> 
-                    let body' = copyConstPropFoldExp vtable body
+                | Var (nameInner, pos) -> 
+                    let vtable' = SymTab.bind name (VarProp(nameInner)) vtable
+                    let body' = copyConstPropFoldExp vtable' body
                     Let(Dec(name, e', decpos), body', pos)
 
                 | Constant (value, pos) ->
-                    let body' = copyConstPropFoldExp vtable body
+                    let vtable' = SymTab.bind name (ConstProp(value)) vtable
+                    let body' = copyConstPropFoldExp vtable' body
                     Let(Dec(name, e', decpos), body', pos)
 
                 | Let (Dec(nameInner, eInner, decposInner), bodyInner, posInner) ->
-                    (* TODO project task 3:
-                        Hint: this has the structure
-                                `let y = (let x = e1 in e2) in e3`
-                        Problem is, in this form, `e2` may simplify
-                        to a variable or constant, but I will miss
-                        identifying the resulting variable/constant-copy
-                        statement on `y`.
-                        A potential solution is to optimize directly the
-                        restructured, semantically-equivalent expression:
-                                `let x = e1 in let y = e2 in e3`
-                    *)
-                    Let (Dec(nameInner, eInner, decposInner), Let(Dec(name, bodyInner, decpos), body, pos), posInner) 
+                    copyConstPropFoldExp vtable (Let (Dec(nameInner, eInner, decposInner), Let(Dec(name, bodyInner, decpos), body, pos), posInner) )
 
                 | _ -> (* Fallthrough - for everything else, do nothing *)
                     let body' = copyConstPropFoldExp vtable body
